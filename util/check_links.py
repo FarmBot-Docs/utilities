@@ -102,7 +102,8 @@ def is_same_hub(**kwargs):
     has_hub = http and link.split('/')[2].startswith(current_hub[:3])
     top_link = link.endswith('farm.bot')
     last = link.split('/')[-1]
-    version_link = walk.is_version_name(last)
+    second_to_last = link.split('/')[-2] if len(link.split('/')) > 1 else ''
+    version_link = walk.is_version_name(last) and second_to_last == 'docs'
     return http and farmbot and has_hub and not top_link and not version_link
 
 

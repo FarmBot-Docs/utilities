@@ -42,7 +42,7 @@ def test_link_checker():
         'https://image.png',
         'https://link',
         'https://test.farm.bot',
-        'https://test.farm.bot/v1.0',
+        'https://test.farm.bot/docs/v1.0',
         'https://test.farm.bot/page',
     ]
     assert len([l for l in results['test'] if l['status'] == 'ok']) == 15
