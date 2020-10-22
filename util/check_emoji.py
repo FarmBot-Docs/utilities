@@ -127,6 +127,7 @@ class EmojiChecker():
             self.emoji_names['bad'].add(emoji)
         emoji_info = {
             'status': status,
+            'version': float(local_root.split('/')[0].strip('v')),
             'from': os.sep.join([local_root, filename]),
             'line_number': line_number,
             'emoji': emoji,

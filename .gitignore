@@ -1,4 +1,5 @@
 __pycache__
 *.pyc
 results
+logs
 valid_emoji_names.json

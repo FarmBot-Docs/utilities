@@ -3,16 +3,14 @@
 'Run all documentation file checks.'
 
 import sys
-from util import LinkChecker, EmojiChecker, Summary
+from util import LinkChecker, EmojiChecker, TocChecker, Summary
 
 if __name__ == '__main__':
     summary = Summary()
 
-    link_checker = LinkChecker(summary)
-    link_checker.check_all()
-
-    emoji_checker = EmojiChecker(summary)
-    emoji_checker.check_all()
+    for Checker in [LinkChecker, EmojiChecker, TocChecker]:
+        checker = Checker(summary)
+        checker.check_all()
 
     summary.print()
     sys.exit(summary.exit_code)

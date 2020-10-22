@@ -113,9 +113,6 @@ def is_section_missing(**kwargs):
     filename = kwargs['filename']
     full_link = kwargs['link']
     section_index = kwargs['section_index']
-    stable = versions.stable_version_lookup().get(kwargs['current_hub'])
-    if stable is not None and get_version_from_root(root) not in stable:
-        return False
     try:
         section = full_link.split('#')[1]
     except IndexError:
@@ -221,6 +218,25 @@ class LinkChecker():
         self.links = {}
         self.section_index = {}
 
+    def _allow_missing_sections(self, root, issues):
+        stable = versions.stable_version_lookup().get(self.current_hub)
+
+        def _allow(issue):
+            unstable_version = (stable is not None
+                                and get_version_from_root(root) not in stable)
+            return unstable_version and issue == 'section_missing'
+        return [issue for issue in issues if not _allow(issue)]
+
+    @staticmethod
+    def _get_local_path(local_root, filename, link):
+        if get_link_relation(link['link']) != 'relative':
+            return None
+        relative_path = link['link'].split('#')[0]
+        if relative_path == '':
+            relative_path = filename
+        local_path = os.path.realpath(os.sep.join([local_root, relative_path]))
+        return local_path.split(os.path.realpath('.'))[1].strip('/')
+
     def check_link(self, root, filename, full, line_number):
         'verify integrity of link'
         local_root = walk.get_local_root(self.folder, root)
@@ -237,15 +253,18 @@ class LinkChecker():
             if issue_data['check'](**link_check_kwargs):
                 issues.append(issue)
         status = 'ok'
-        if len(issues) > 0:
-            status = POSSIBLE_ISSUES[issues[0]]['label']
+        problems = self._allow_missing_sections(root, issues)
+        if len(problems) > 0:
+            status = POSSIBLE_ISSUES[problems[0]]['label']
         link_info = {
             'status': status,
             'type': link['type'],
             'link': get_link_relation(link['link']),
+            'version': float(local_root.split('/')[0].strip('v')),
             'from': os.sep.join([local_root, filename]),
             'line_number': line_number,
             'to': link['link'],
+            'to_absolute': self._get_local_path(local_root, filename, link),
             'text': link['text'],
             'issues': issues,
             'available-sections': get_sections(
@@ -283,9 +302,11 @@ class LinkChecker():
             'status': 'syntax error',
             'type': 'unknown',
             'link': 'unknown',
+            'version': float(local_root.split('/')[0].strip('v')),
             'from': os.sep.join([local_root, kwargs['filename']]),
             'line_number': kwargs['line_number'],
             'to': 'unknown',
+            'to_absolute': 'unknown',
             'text': 'unknown',
             'issues': ['syntax_error'],
             'line': kwargs['line'],

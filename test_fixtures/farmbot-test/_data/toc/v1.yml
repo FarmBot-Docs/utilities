@@ -1,0 +1,14 @@
+version_number: 1
+status: stable
+home: docs/v1_docs
+contents:
+  - title: Docs
+    url: docs
+    top: true
+    pages:
+      - title: v1 Docs
+        url: v1_docs
+      - title: Title mismatch
+        url: v1_docs
+      - title: Missing page
+        url: missing_page

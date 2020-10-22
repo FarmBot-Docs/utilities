@@ -6,6 +6,7 @@ import os
 import json
 from util.check_links import POSSIBLE_ISSUES as POSSIBLE_LINK_ISSUES
 from util.check_emoji import POSSIBLE_ISSUES as POSSIBLE_EMOJI_ISSUES
+from util.check_tocs import POSSIBLE_ISSUES as POSSIBLE_TOC_ISSUES
 from util.walk import print_hub_title, get_relative_filename
 
 ORDERED_LINK_INFO_KEYS = ['status', 'type', 'link',
@@ -88,7 +89,7 @@ def print_link_summary(hub_links, **kwargs):
 
 def print_broken_links(hub_links, max_counts, issue_filter):
     'print list of broken link info'
-    broken_links = [l for l in hub_links if len(l['issues']) > 0]
+    broken_links = [l for l in hub_links if l['status'] != 'ok']
 
     if len(broken_links) > 0:
         print(' broken links '.upper().center(50, '-'))
@@ -129,11 +130,11 @@ def print_emoji_summary(hub_emojis, **_kwargs):
     print(f'{len(hub_emojis):>6} total ({len(unique)} unique)')
     print(f'       {", ".join(unique)}')
     print('  ----------')
-    print(f'{len([e for e in hub_emojis if len(e["issues"]) == 0]):>6} ok')
+    print(f'{len([e for e in hub_emojis if e["status"] == "ok"]):>6} ok')
     for issue, issue_data in POSSIBLE_EMOJI_ISSUES.items():
         count = len([e for e in hub_emojis if issue in e["issues"]])
         print(f'{count:>6} {issue_data["label"]}')
-    broken_emojis = [e for e in hub_emojis if len(e['issues']) > 0]
+    broken_emojis = [e for e in hub_emojis if e['status'] != 'ok']
     print()
     if len(broken_emojis) > 0:
         print(' broken emojis '.upper().center(50, '-'))
@@ -144,9 +145,32 @@ def print_emoji_summary(hub_emojis, **_kwargs):
     print('\n')
 
 
+def print_toc_page_summary(hub_pages, **_kwargs):
+    'print a summary of toc pages'
+    print('\n')
+    print(' ToC page summary '.upper().center(50, '-'))
+    print(f'{len(hub_pages):>6} total')
+    print('  ----------')
+    print(f'{len([p for p in hub_pages if p["status"] == "ok"]):>6} ok')
+    for issue, issue_data in POSSIBLE_TOC_ISSUES.items():
+        count = len([p for p in hub_pages if issue in p["issues"]])
+        print(f'{count:>6} {issue_data["label"]}')
+    broken_toc_pages = [p for p in hub_pages if p['status'] != 'ok']
+    print()
+    if len(broken_toc_pages) > 0:
+        print(' broken ToC pages '.upper().center(50, '-'))
+    for toc_page in broken_toc_pages:
+        for key in ['status', 'page', 'toc_page_title', 'md_page_title',
+                    'section', 'issues']:
+            print(f'{key:<15}: {toc_page[key]}')
+        print()
+    print('\n')
+
+
 SUMMARY_FOR = {
     'links': print_link_summary,
     'emoji': print_emoji_summary,
+    'toc': print_toc_page_summary,
 }
 
 

@@ -1,3 +1,7 @@
+---
+title: "v1 Docs"
+---
+
 # v1 Docs
 
 A link to [this page](v1_docs.md).
