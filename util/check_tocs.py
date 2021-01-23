@@ -74,7 +74,7 @@ class TocChecker():
             status = POSSIBLE_ISSUES[problems[0]]['label']
         toc_page_info = {
             'status': status,
-            'version': float(page_filename.split('/')[2].strip('v')),
+            'version': versions.get_version_from_root(page_filename),
             'page': page_filename,
             'toc_page_title': page_data['title'],
             'md_page_title': md_page_title,
@@ -87,7 +87,8 @@ class TocChecker():
         'verify integrity of toc entries'
         with open(os.path.join(toc_dir, toc_filename), 'r') as toc_file:
             toc_data = yaml.safe_load(toc_file)
-        version = f'v{toc_data["version_number"]}'
+        version_number = toc_data['version_number']
+        version = f'v{version_number}' if version_number != 'docs' else 'docs'
         print(version, end=' ', flush=True)
         for section in toc_data['contents']:
             section_path = os.sep.join([hub_dir, version, section['url']])

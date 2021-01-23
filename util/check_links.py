@@ -57,11 +57,6 @@ def get_link_relation(link):
     return 'relative'
 
 
-def get_version_from_root(root):
-    'get doc version'
-    return float(root.split('/')[2].strip('v'))
-
-
 def get_sections(section_index, root, filename, link):
     'get headers in markdown file from section index'
     slug = link.split('#')[0] or filename
@@ -223,7 +218,7 @@ class LinkChecker():
 
         def _allow(issue):
             unstable_version = (stable is not None
-                                and get_version_from_root(root) not in stable)
+                                and versions.get_version_from_root(root) not in stable)
             return unstable_version and issue == 'section_missing'
         return [issue for issue in issues if not _allow(issue)]
 
@@ -260,7 +255,7 @@ class LinkChecker():
             'status': status,
             'type': link['type'],
             'link': get_link_relation(link['link']),
-            'version': float(local_root.split('/')[0].strip('v')),
+            'version': versions.get_version_from_root(local_root, index=0),
             'from': os.sep.join([local_root, filename]),
             'line_number': line_number,
             'to': link['link'],
@@ -302,7 +297,7 @@ class LinkChecker():
             'status': 'syntax error',
             'type': 'unknown',
             'link': 'unknown',
-            'version': float(local_root.split('/')[0].strip('v')),
+            'version': versions.get_version_from_root(local_root, index=0),
             'from': os.sep.join([local_root, kwargs['filename']]),
             'line_number': kwargs['line_number'],
             'to': 'unknown',

@@ -19,6 +19,8 @@ def get_indent(local_root):
 
 def is_version_name(name):
     'check if the provided name is a version directory name'
+    if name == 'docs':
+        return True
     try:
         float(name.strip('v'))
     except ValueError:
