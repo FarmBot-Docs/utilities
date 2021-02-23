@@ -10,7 +10,7 @@ from util.check_tocs import POSSIBLE_ISSUES as POSSIBLE_TOC_ISSUES
 from util.walk import print_hub_title, get_relative_filename
 
 ORDERED_LINK_INFO_KEYS = ['status', 'type', 'link',
-                          'from', 'line_number', 'to', 'text', 'issues']
+                          'from', 'line_number', 'to', 'text', 'full', 'issues']
 LINK_ISSUE_KEYS_LOOKUP = {
     'link': {
         'relative': ['not_found', 'doc:', 'section_missing'],
@@ -29,6 +29,12 @@ ORDERED_LINK_ISSUE_KEYS = [
     'section_missing',
     'syntax_error',
 ]
+
+
+def color(text, text_color='red'):
+    'color terminal text'
+    colors = {'red': '\033[91m', 'end': '\033[0m'}
+    return f'{colors[text_color]}{text}{colors["end"]}'
 
 
 def print_issue_counts(links, link_type=None, relation=None):
@@ -105,11 +111,16 @@ def print_broken_links(hub_links, max_counts, issue_filter):
                 print_counts[link['type']] = current_count + 1
             print()
             extra = []
-            for extra_key in ['available-sections', 'line']:
+            for extra_key in ['available-sections', 'available-files', 'line']:
                 if link.get(extra_key) is not None:
                     extra.append(extra_key)
             for key in ORDERED_LINK_INFO_KEYS + extra:
-                print(f'{key:<12}: {link[key]}')
+                value = link[key]
+                if key == 'available-files' and isinstance(value, list):
+                    value = json.dumps(sorted(value), indent=2)
+                if key == 'full':
+                    value = color(value)
+                print(f'{key:<19}: {value}')
 
     def _more(link_type):
         total_filtered = [l for l in broken_links if l['type'] == link_type]
@@ -140,7 +151,10 @@ def print_emoji_summary(hub_emojis, **_kwargs):
         print(' broken emojis '.upper().center(50, '-'))
     for emoji in broken_emojis:
         for key in ['status', 'from', 'line_number', 'emoji', 'issues']:
-            print(f'{key:<12}: {emoji[key]}')
+            value = emoji[key]
+            if key == 'emoji':
+                value = color(value)
+            print(f'{key:<12}: {value}')
         print()
     print('\n')
 
@@ -162,7 +176,10 @@ def print_toc_page_summary(hub_pages, **_kwargs):
     for toc_page in broken_toc_pages:
         for key in ['status', 'page', 'toc_page_title', 'md_page_title',
                     'section', 'issues']:
-            print(f'{key:<15}: {toc_page[key]}')
+            value = toc_page[key]
+            if key == 'page':
+                value = color(value)
+            print(f'{key:<15}: {value}')
         print()
     print('\n')
 

@@ -42,9 +42,9 @@ def test_link_checker():
 
     check_results('to', link_checker.links, {
         'hub_count': 1,
-        'item_count': 21,
+        'item_count': 22,
         'ok_count': 15,
-        'broken_count': 6,
+        'broken_count': 7,
         'items': [
             'v1_docs.md',
             '../docs/v1_docs.md#v1-docs',
@@ -61,6 +61,7 @@ def test_link_checker():
             'https://',
             'https://',
             'v1_docs.md',
+            'missing.jpg',
             'broken image (odd).JPG',
             'https://image.png',
             'https://link',

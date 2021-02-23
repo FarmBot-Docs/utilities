@@ -73,6 +73,15 @@ def get_section_link(header_text):
     return section
 
 
+def get_files(root, link):
+    'get available files at path'
+    path = os.sep.join([root, link.split('#')[0]])
+    dir_path = os.path.dirname(path)
+    if not os.path.exists(dir_path):
+        return f'DIR NOT FOUND (\'{dir_path}\')'
+    return os.listdir(dir_path)
+
+
 def is_not_found(**kwargs):
     'check if a link path exists'
     root = kwargs['root']
@@ -198,7 +207,8 @@ def check_line_html(**kwargs):
                 kwargs['root'],
                 kwargs['filename'],
                 f'{identifier}[]({link})',
-                kwargs['line_number'])
+                kwargs['line_number'],
+                html_line=kwargs['line'].strip('\n'))
 
 
 class LinkChecker():
@@ -232,7 +242,7 @@ class LinkChecker():
         local_path = os.path.realpath(os.sep.join([local_root, relative_path]))
         return local_path.split(os.path.realpath('.'))[1].strip('/')
 
-    def check_link(self, root, filename, full, line_number):
+    def check_link(self, root, filename, full, line_number, html_line=None):
         'verify integrity of link'
         local_root = walk.get_local_root(self.folder, root)
         link = parse_link(full)
@@ -261,11 +271,15 @@ class LinkChecker():
             'to': link['link'],
             'to_absolute': self._get_local_path(local_root, filename, link),
             'text': link['text'],
+            'full': html_line or full,
             'issues': issues,
             'available-sections': get_sections(
                 link_check_kwargs['section_index'],
                 root, filename, link['link']
             ) if 'section_missing' in issues else None,
+            'available-files': get_files(
+                root, link['link']
+            ) if 'not_found' in issues else None,
         }
         self.links[self.current_hub].append(link_info)
         if self.verbose:
@@ -303,6 +317,7 @@ class LinkChecker():
             'to': 'unknown',
             'to_absolute': 'unknown',
             'text': 'unknown',
+            'full': kwargs['line'].strip('\n'),
             'issues': ['syntax_error'],
             'line': kwargs['line'],
         })

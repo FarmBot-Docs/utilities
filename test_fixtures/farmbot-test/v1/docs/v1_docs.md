@@ -22,6 +22,7 @@ syntax error](v1_docs.md)
 <script src="https://">
 <source src="https://">
 <img src="v1_docs.md">
+<img src="missing.jpg">
 
 ![broken image (odd).JPG](broken image (odd).JPG)
 
