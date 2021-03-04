@@ -345,7 +345,7 @@ class LinkChecker():
     def check_all(self, hubs=None):
         'check links in all hubs'
         if hubs is None:
-            hubs = versions.stable_version_lookup().keys()
+            hubs = versions.HUBS
         for hub in hubs:
             self.current_hub = hub
             self.section_index[hub] = {}

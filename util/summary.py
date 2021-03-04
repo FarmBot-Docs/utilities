@@ -33,7 +33,7 @@ ORDERED_LINK_ISSUE_KEYS = [
 
 def color(text, text_color='red'):
     'color terminal text'
-    colors = {'red': '\033[91m', 'end': '\033[0m'}
+    colors = {'red': '\033[91m', 'green': '\033[92m', 'end': '\033[0m'}
     return f'{colors[text_color]}{text}{colors["end"]}'
 
 
@@ -211,6 +211,12 @@ class Summary():
             print_hub_title(hub)
             for results_key, results_data in self.results.items():
                 SUMMARY_FOR[results_key](results_data[hub], **kwargs)
+        print()
+        if self.exit_code:
+            print(color('Issues found.'))
+        else:
+            print(color('No issues found.', 'green'))
+        print()
 
     def save_results(self, results_key):
         'save results to file'

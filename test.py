@@ -4,6 +4,7 @@
 
 from util import LinkChecker, EmojiChecker, TocChecker, Summary
 from util.check_links import get_section_link
+from util.summary import color
 
 
 def assert_eq(what, result, expected):
@@ -129,4 +130,4 @@ if __name__ == '__main__':
     test_check_links_extras()
     test_emoji_checker()
     test_toc_checker()
-    print('\ntests complete: ok\n')
+    print(color('\nTests complete. (OK / PASS)\n', 'green'))

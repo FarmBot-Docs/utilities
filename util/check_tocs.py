@@ -97,7 +97,7 @@ class TocChecker():
     def check_all(self, hubs=None):
         'check tocs in all hubs'
         if hubs is None:
-            hubs = versions.stable_version_lookup().keys()
+            hubs = versions.HUBS
         for hub in hubs:
             self.current_hub = hub
             self.pages[hub] = []
