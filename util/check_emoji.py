@@ -84,6 +84,8 @@ def check_line(**kwargs):
                 continue
             if emoji == 'backups':
                 continue
+            if set(emoji) == set('-'):
+                continue
             kwargs['check_emoji'](
                 kwargs['root'],
                 kwargs['filename'],

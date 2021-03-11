@@ -33,4 +33,4 @@ syntax error](v1_docs.md)
 [self ok](https://test.farm.bot)
 [self v ok](https://test.farm.bot/docs/v1.0), [self bad](https://test.farm.bot/page)
 
-:-1::+1: :11::100: :clock1: :abc::abcde: :t-rex::alarm-clock:
+:-1::+1: :11::100: :clock1: :abc::abcde: :t-rex::alarm-clock: :-----:
