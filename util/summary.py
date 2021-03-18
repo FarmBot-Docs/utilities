@@ -7,7 +7,7 @@ import json
 from util.check_links import POSSIBLE_ISSUES as POSSIBLE_LINK_ISSUES
 from util.check_emoji import POSSIBLE_ISSUES as POSSIBLE_EMOJI_ISSUES
 from util.check_tocs import POSSIBLE_ISSUES as POSSIBLE_TOC_ISSUES
-from util.walk import print_hub_title, get_relative_filename
+from util.walk import get_hub_title, get_relative_filename
 
 ORDERED_LINK_INFO_KEYS = ['status', 'type', 'link',
                           'from', 'line_number', 'to', 'text', 'full', 'issues']
@@ -33,7 +33,12 @@ ORDERED_LINK_ISSUE_KEYS = [
 
 def color(text, text_color='red'):
     'color terminal text'
-    colors = {'red': '\033[91m', 'green': '\033[92m', 'end': '\033[0m'}
+    colors = {
+        'red': '\033[91m',
+        'green': '\033[92m',
+        'bold': '\033[1m',
+        'end': '\033[0m',
+    }
     return f'{colors[text_color]}{text}{colors["end"]}'
 
 
@@ -98,7 +103,7 @@ def print_broken_links(hub_links, max_counts, issue_filter):
     broken_links = [l for l in hub_links if l['status'] != 'ok']
 
     if len(broken_links) > 0:
-        print(' broken links '.upper().center(50, '-'))
+        print(color(' broken links '.upper().center(50, '-'), 'bold'))
     print_counts = {'link': 0, 'image': 0}
     for link in broken_links:
         current_count = print_counts.get(link['type'], 0)
@@ -148,7 +153,7 @@ def print_emoji_summary(hub_emojis, **_kwargs):
     broken_emojis = [e for e in hub_emojis if e['status'] != 'ok']
     print()
     if len(broken_emojis) > 0:
-        print(' broken emojis '.upper().center(50, '-'))
+        print(color(' broken emojis '.upper().center(50, '-'), 'bold'))
     for emoji in broken_emojis:
         for key in ['status', 'from', 'line_number', 'emoji', 'issues']:
             value = emoji[key]
@@ -172,7 +177,7 @@ def print_toc_page_summary(hub_pages, **_kwargs):
     broken_toc_pages = [p for p in hub_pages if p['status'] != 'ok']
     print()
     if len(broken_toc_pages) > 0:
-        print(' broken ToC pages '.upper().center(50, '-'))
+        print(color(' broken ToC pages '.upper().center(50, '-'), 'bold'))
     for toc_page in broken_toc_pages:
         for key in ['status', 'page', 'toc_page_title', 'md_page_title',
                     'section', 'issues']:
@@ -196,6 +201,7 @@ class Summary():
 
     def __init__(self):
         self.results = {}
+        self.extra_summaries = {}
         self.exit_code = 0
 
     def add_results(self, key, data):
@@ -203,12 +209,16 @@ class Summary():
         self.results[key] = data
         self.save_results(key)
 
-    def print(self, **kwargs):
+    def print(self, hubs=None, **kwargs):
         'print summary'
-        hub_results = self.results[list(self.results.keys())[0]]
-        hubs = [hub for hub, results in hub_results.items() if len(results) > 0]
+        if hubs is None:
+            hub_results = self.results[list(self.results.keys())[0]]
+            hubs = [hub for hub, results in hub_results.items()
+                    if len(results) > 0]
         for hub in hubs:
-            print_hub_title(hub)
+            print(color(get_hub_title(hub), 'bold'))
+            print()
+            print(self.extra_summaries.get(hub))
             for results_key, results_data in self.results.items():
                 SUMMARY_FOR[results_key](results_data[hub], **kwargs)
         print()

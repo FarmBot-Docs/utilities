@@ -33,10 +33,15 @@ def is_content_dir(local_root):
     return is_version_name(local_root.split('/')[0])
 
 
+def get_hub_title(hub):
+    'generate hub title'
+    hub_title = f'farmbot-{hub}'
+    return f' {hub_title} '.center(100, '=')
+
+
 def print_hub_title(hub):
     'print hub title'
-    hub_title = f'farmbot-{hub}'
-    print(f' {hub_title} '.center(100, '='))
+    print(get_hub_title(hub))
 
 
 def print_dir(local_root, verbose=False):

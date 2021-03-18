@@ -110,3 +110,4 @@ class TocChecker():
                     self.check_toc(hub_dir, toc_dir, toc_filename)
                     self.summary.add_results('toc', self.pages)
                 print()
+        print()

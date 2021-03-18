@@ -2,7 +2,7 @@
 
 'Utility tests.'
 
-from util import LinkChecker, EmojiChecker, TocChecker, Summary
+from util import LinkChecker, EmojiChecker, TocChecker, ImageFileChecker, Summary
 from util.check_links import get_section_link
 from util.summary import color
 
@@ -125,9 +125,21 @@ def test_toc_checker():
     })
 
 
+def test_image_file_checker():
+    'test ImageFileChecker'
+    summary = Summary()
+    image_file_checker = ImageFileChecker(summary, 'test_fixtures')
+    image_file_checker.check_all(['test'])
+    summary.print(['test'])
+
+    summary_str = image_file_checker.summary_string
+    assert 'v1/docs/missing.jpg' in summary_str
+
+
 if __name__ == '__main__':
     test_link_checker()
     test_check_links_extras()
     test_emoji_checker()
     test_toc_checker()
+    test_image_file_checker()
     print(color('\nTests complete. (OK / PASS)\n', 'green'))
