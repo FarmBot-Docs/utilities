@@ -57,6 +57,8 @@ class ImageFileChecker():
             self.summary_string = ''
             self.add_line(' image file summary '.upper().center(50, '-'), 0)
             hub_dir = os.path.join(self.folder, f'farmbot-{hub}')
+            if not os.path.exists(hub_dir):
+                continue
 
             used_image_paths = [link['to_absolute']
                                 for link in all_links[hub]
