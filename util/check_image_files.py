@@ -7,8 +7,7 @@ import json
 from collections import Counter
 import imagesize
 from util.walk import is_content_dir, get_relative_filename
-from util.versions import HUBS
-from util.summary import color
+from util.versions import HUBS, color
 
 
 class ImageFileChecker():
@@ -139,7 +138,7 @@ class ImageFileChecker():
                 for path in missing:
                     self.add_line(color(path))
 
-            self.summary.extra_summaries[hub] = self.summary_string
+            self.summary.add_extra_summary(hub, self.summary_string)
             if len(unused) > 0 or len(missing) > 0:
                 pass
                 # self.summary.exit_code = 1

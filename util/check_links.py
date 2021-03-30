@@ -4,8 +4,7 @@
 
 import os
 import string
-from util import versions
-from util import walk
+from util import versions, walk
 
 
 def extend_index(full, index):

@@ -6,8 +6,7 @@ import os
 import json
 import string
 from urllib.request import Request, urlopen
-from util import versions
-from util import walk
+from util import versions, walk
 
 
 def load_valid_emoji_names():

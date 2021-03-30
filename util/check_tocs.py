@@ -17,6 +17,21 @@ def title_mismatch(**kwargs):
     return kwargs['toc_page_title'] != kwargs['md_page_title']
 
 
+def redirect_missing(**kwargs):
+    'Check if a ToC page has a redirect file.'
+    hub_dir = os.sep.join(kwargs['filename'].split('/')[:2])
+    hub = versions.get_hub_from_dir(hub_dir)
+    version = versions.get_version_from_root(kwargs['filename'])
+    if version not in versions.latest_stable_versions(hub):
+        return False
+    if versions.get_hub_from_dir(hub_dir) == 'oer':
+        return False
+    redirects_dir = os.path.join(hub_dir, '_redirects')
+    filename = kwargs['filename'].split('/')[-1]
+    expected_filepath = os.path.join(redirects_dir, filename)
+    return not os.path.exists(expected_filepath)
+
+
 POSSIBLE_ISSUES = {
     'page_missing': {
         'label': 'missing page',
@@ -26,7 +41,16 @@ POSSIBLE_ISSUES = {
         'label': 'page title mismatch',
         'check': title_mismatch,
     },
+    'redirect_missing': {
+        'label': 'missing redirect',
+        'check': redirect_missing,
+    },
 }
+
+IGNORED_ISSUES = [
+    'title_mismatch',
+    'redirect_missing',
+]
 
 
 class TocChecker():
@@ -69,13 +93,14 @@ class TocChecker():
             if issue_data['check'](**toc_check_kwargs):
                 issues.append(issue)
         status = 'ok'
-        problems = [issue for issue in issues if issue != 'title_mismatch']
+        problems = [issue for issue in issues if issue not in IGNORED_ISSUES]
         if len(problems) > 0:
             status = POSSIBLE_ISSUES[problems[0]]['label']
         toc_page_info = {
             'status': status,
             'version': versions.get_version_from_root(page_filename),
             'page': page_filename,
+            'slug': page_filename.split('/')[-1].split('.')[0],
             'toc_page_title': page_data['title'],
             'md_page_title': md_page_title,
             'section': section_url,
@@ -88,7 +113,8 @@ class TocChecker():
         with open(os.path.join(toc_dir, toc_filename), 'r') as toc_file:
             toc_data = yaml.safe_load(toc_file)
         version_number = toc_data['version_number']
-        version = f'v{version_number}' if version_number != 'docs' else 'docs'
+        hub = versions.get_hub_from_dir(hub_dir)
+        version = versions.get_version_string(hub, version_number)
         print(version, end=' ', flush=True)
         for section in toc_data['contents']:
             section_path = os.sep.join([hub_dir, version, section['url']])
@@ -109,5 +135,34 @@ class TocChecker():
                 for toc_filename in sorted(toc_filenames):
                     self.check_toc(hub_dir, toc_dir, toc_filename)
                     self.summary.add_results('toc', self.pages)
+                broken_redirects = verify_redirects(hub_dir)
+                self.summary.add_extra_summary(hub, broken_redirects)
+                if '.md' in broken_redirects:
+                    pass
+                    # self.summary.exit_code = 1
                 print()
         print()
+
+
+def verify_redirects(hub_dir):
+    'Verify redirect integrity.'
+    hub = versions.get_hub_from_dir(hub_dir)
+    latest_version_number = (versions.latest_stable_versions(hub) or [1])[-1]
+    latest_version = versions.get_version_string(hub, latest_version_number)
+    redirect_dir = os.path.join(hub_dir, '_redirects')
+    missing_files = '\n' + ' broken redirects '.upper().center(50, '-') + '\n'
+    if not os.path.exists(redirect_dir):
+        return ''
+    for redirect in os.listdir(redirect_dir):
+        redirect_filename = os.path.join(redirect_dir, redirect)
+        with open(redirect_filename, 'r') as redirect_file:
+            lines = redirect_file.readlines()
+        for line in lines:
+            if line.startswith('page_path:'):
+                page_path = line.split('page_path:')[1].strip()
+                filepath = os.sep.join([
+                    hub_dir, latest_version, page_path]) + '.md'
+                if not os.path.exists(filepath):
+                    missing_files += f'  {versions.color(filepath)}\n'
+    missing_files += '\n\n'
+    return missing_files if '.md' in missing_files else ''

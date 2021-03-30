@@ -8,6 +8,7 @@ from util.check_links import POSSIBLE_ISSUES as POSSIBLE_LINK_ISSUES
 from util.check_emoji import POSSIBLE_ISSUES as POSSIBLE_EMOJI_ISSUES
 from util.check_tocs import POSSIBLE_ISSUES as POSSIBLE_TOC_ISSUES
 from util.walk import get_hub_title, get_relative_filename
+from util.versions import color
 
 ORDERED_LINK_INFO_KEYS = ['status', 'type', 'link',
                           'from', 'line_number', 'to', 'text', 'full', 'issues']
@@ -29,17 +30,6 @@ ORDERED_LINK_ISSUE_KEYS = [
     'section_missing',
     'syntax_error',
 ]
-
-
-def color(text, text_color='red'):
-    'color terminal text'
-    colors = {
-        'red': '\033[91m',
-        'green': '\033[92m',
-        'bold': '\033[1m',
-        'end': '\033[0m',
-    }
-    return f'{colors[text_color]}{text}{colors["end"]}'
 
 
 def print_issue_counts(links, link_type=None, relation=None):
@@ -179,10 +169,12 @@ def print_toc_page_summary(hub_pages, **_kwargs):
     if len(broken_toc_pages) > 0:
         print(color(' broken ToC pages '.upper().center(50, '-'), 'bold'))
     for toc_page in broken_toc_pages:
-        for key in ['status', 'page', 'toc_page_title', 'md_page_title',
+        for key in ['status', 'slug', 'page', 'toc_page_title', 'md_page_title',
                     'section', 'issues']:
             value = toc_page[key]
-            if key == 'page':
+            if key == 'page' and toc_page['issues'] != ['redirect_missing']:
+                value = color(value)
+            if key == 'slug' and 'redirect_missing' in toc_page['issues']:
                 value = color(value)
             print(f'{key:<15}: {value}')
         print()
@@ -208,6 +200,10 @@ class Summary():
         'add results'
         self.results[key] = data
         self.save_results(key)
+
+    def add_extra_summary(self, hub, string):
+        'add extra summary string'
+        self.extra_summaries[hub] = self.extra_summaries.get(hub, '') + string
 
     def print(self, hubs=None, **kwargs):
         'print summary'
