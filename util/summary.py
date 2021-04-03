@@ -49,6 +49,17 @@ def print_issue_counts(links, link_type=None, relation=None):
     if relation == 'http':
         source_count = len({l['to'].split('/')[2] for l in links})
         sources_string = f'({source_count} sites)'
+    other_string = ''
+    if relation == 'other':
+        other_string = '\n'
+        other_counts = {}
+        for link in links:
+            link_to = link['to']
+            other_counts[link_to] = other_counts.get(link_to, 0) + 1
+        other_sorted = sorted(other_counts.items(), key=lambda n: n[1])[::-1]
+        for link_to, count in other_sorted:
+            other_string += f'{count:>8}: {link_to}\n'
+    details_string = f'{extensions_string} {sources_string} {other_string}'
     counts = {k['label']: 0 for k in POSSIBLE_LINK_ISSUES.values()}
     for link in links:
         for issue in link['issues']:
@@ -60,7 +71,7 @@ def print_issue_counts(links, link_type=None, relation=None):
         issue_keys = LINK_ISSUE_KEYS_LOOKUP[link_type][relation]
     except KeyError:
         issue_keys = ORDERED_LINK_ISSUE_KEYS
-    details = f'{extensions_string} {sources_string}' if len(links) > 0 else ''
+    details = details_string if len(links) > 0 else ''
     print(f'{len(links):>6} total {details}')
     print('  ----------')
     if len(issue_keys) > 0:
