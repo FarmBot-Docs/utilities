@@ -100,7 +100,7 @@ def is_same_hub(**kwargs):
     'check if a link uses an external url for an internal documentation page'
     link = kwargs['link'].lower()
     current_hub = kwargs['current_hub']
-    http = 'http' in link
+    http = link.startswith('http')
     farmbot = 'farm.bot' in link
     has_hub = http and link.split('/')[2].startswith(current_hub[:3])
     top_link = link.endswith('farm.bot')
