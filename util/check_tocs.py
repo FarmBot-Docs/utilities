@@ -4,7 +4,7 @@
 
 import os
 import yaml
-from util import versions
+from util import versions, walk
 
 
 def missing(**kwargs):
@@ -42,7 +42,7 @@ POSSIBLE_ISSUES = {
         'check': title_mismatch,
     },
     'redirect_missing': {
-        'label': 'missing redirect',
+        'label': 'missing or renamed redirect',
         'check': redirect_missing,
     },
 }
@@ -153,6 +153,7 @@ def verify_redirects(hub_dir):
     missing_files = '\n' + ' broken redirects '.upper().center(50, '-') + '\n'
     if not os.path.exists(redirect_dir):
         return ''
+    redirects = []
     for redirect in os.listdir(redirect_dir):
         redirect_filename = os.path.join(redirect_dir, redirect)
         with open(redirect_filename, 'r') as redirect_file:
@@ -162,7 +163,22 @@ def verify_redirects(hub_dir):
                 page_path = line.split('page_path:')[1].strip()
                 filepath = os.sep.join([
                     hub_dir, latest_version, page_path]) + '.md'
+                filepath = filepath.replace('//', '/')
                 if not os.path.exists(filepath):
                     missing_files += f'  {versions.color(filepath)}\n'
+                redirects.append(filepath)
     missing_files += '\n\n'
+    version_dir = os.path.join(hub_dir, latest_version)
+    if versions.get_version_from_root(version_dir) != 'docs':
+        pages = []
+        for root, _dirs, files in sorted(os.walk(version_dir)):
+            files = [f for f in files if f.endswith('.md')]
+            for filename in files:
+                page_filename = os.path.join(root, filename)
+                pages.append(page_filename)
+        missing_files += '\n' + ' missing redirects '.upper().center(50, '-') + '\n'
+        missing_redirects = set(pages) - set(redirects)
+        for missing_redirect in missing_redirects:
+            missing_files += f'  {versions.color(missing_redirect)}\n'
+        missing_files += '\n\n'
     return missing_files if '.md' in missing_files else ''
