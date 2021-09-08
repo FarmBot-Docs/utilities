@@ -165,7 +165,8 @@ def verify_redirects(hub_dir):
                     hub_dir, latest_version, page_path]) + '.md'
                 filepath = filepath.replace('//', '/')
                 if not os.path.exists(filepath):
-                    missing_files += f'  {versions.color(filepath)}\n'
+                    redirect_info = f'{filepath} ({redirect_filename})'
+                    missing_files += f'  {versions.color(redirect_info)}\n'
                 redirects.append(filepath)
     missing_files += '\n\n'
     version_dir = os.path.join(hub_dir, latest_version)
