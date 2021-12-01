@@ -1,0 +1,8 @@
+version_number: 1
+data:
+  - page: v1_docs
+    data:
+      - section: v1-docs
+        image: docs/v1_docs.md
+      - section: section-name
+        image: docs/not_found.md

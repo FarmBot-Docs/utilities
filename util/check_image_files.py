@@ -132,11 +132,11 @@ class ImageFileChecker():
 
                 self.print_title('Unused images')
                 for path in unused:
-                    self.add_line(color(path))
+                    self.add_line(color(path, 'yellow'))
 
                 self.print_title('Missing images')
                 for path in missing:
-                    self.add_line(color(path))
+                    self.add_line(color(path, 'yellow'))
 
             self.summary.add_extra_summary(hub, self.summary_string)
             if len(unused) > 0 or len(missing) > 0:

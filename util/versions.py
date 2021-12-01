@@ -11,6 +11,7 @@ def color(text, text_color='red'):
     'color terminal text'
     colors = {
         'red': '\033[91m',
+        'yellow': '\033[93m',
         'green': '\033[92m',
         'bold': '\033[1m',
         'end': '\033[0m',

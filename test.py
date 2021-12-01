@@ -124,6 +124,24 @@ def test_toc_checker():
         ],
     })
 
+    extra_summary_data = summary.extra_summaries['test'].split('-----\n')
+    broken_redirect_summary = extra_summary_data[1]
+    missing_redirect_summary = extra_summary_data[2]
+    not_in_toc_summary = extra_summary_data[3]
+    broken_hover_img_path_summary = extra_summary_data[4]
+
+    broken_redirect_count = broken_redirect_summary.count('.md') / 2
+    assert_eq('broken redirect count', broken_redirect_count, 1)
+
+    missing_redirect_count = missing_redirect_summary.count('.md')
+    assert_eq('missing redirect count', missing_redirect_count, 1)
+
+    not_in_toc_count = not_in_toc_summary.count('.md')
+    assert_eq('not in ToC count', not_in_toc_count, 1)
+
+    broken_path_count = broken_hover_img_path_summary.count('  path: ')
+    assert_eq('broken hover image count', broken_path_count, 1)
+
 
 def test_image_file_checker():
     'test ImageFileChecker'

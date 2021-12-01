@@ -135,40 +135,49 @@ class TocChecker():
                 for toc_filename in sorted(toc_filenames):
                     self.check_toc(hub_dir, toc_dir, toc_filename)
                     self.summary.add_results('toc', self.pages)
-                broken_redirects = verify_redirects(hub_dir)
+                broken_redirects = verify_redirects(hub_dir, self.pages)
                 self.summary.add_extra_summary(hub, broken_redirects)
                 if '.md' in broken_redirects:
                     pass
                     # self.summary.exit_code = 1
+                broken_hover_images = verify_hover_images(hub_dir)
+                self.summary.add_extra_summary(hub, broken_hover_images)
+                if 'page: ' in broken_hover_images:
+                    self.summary.exit_code = 1
                 print()
         print()
 
 
-def verify_redirects(hub_dir):
+def verify_redirects(hub_dir, all_pages):
     'Verify redirect integrity.'
     hub = versions.get_hub_from_dir(hub_dir)
     latest_version_number = (versions.latest_stable_versions(hub) or [1])[-1]
     latest_version = versions.get_version_string(hub, latest_version_number)
     redirect_dir = os.path.join(hub_dir, '_redirects')
-    missing_files = '\n' + ' broken redirects '.upper().center(50, '-') + '\n'
-    if not os.path.exists(redirect_dir):
-        return ''
-    redirects = []
-    for redirect in os.listdir(redirect_dir):
-        redirect_filename = os.path.join(redirect_dir, redirect)
-        with open(redirect_filename, 'r') as redirect_file:
-            lines = redirect_file.readlines()
-        for line in lines:
-            if line.startswith('page_path:'):
-                page_path = line.split('page_path:')[1].strip()
-                filepath = os.sep.join([
-                    hub_dir, latest_version, page_path]) + '.md'
-                filepath = filepath.replace('//', '/')
-                if not os.path.exists(filepath):
-                    redirect_info = f'{filepath} ({redirect_filename})'
-                    missing_files += f'  {versions.color(redirect_info)}\n'
-                redirects.append(filepath)
-    missing_files += '\n\n'
+    missing_files = ''
+    if os.path.exists(redirect_dir):
+        redirects = []
+        broken_redirect_info = []
+        for redirect in os.listdir(redirect_dir):
+            redirect_filename = os.path.join(redirect_dir, redirect)
+            with open(redirect_filename, 'r') as redirect_file:
+                lines = redirect_file.readlines()
+            for line in lines:
+                if line.startswith('page_path:'):
+                    page_path = line.split('page_path:')[1].strip()
+                    filepath = os.sep.join([
+                        hub_dir, latest_version, page_path]) + '.md'
+                    filepath = filepath.replace('//', '/')
+                    if not os.path.exists(filepath):
+                        info = [filepath, redirect_filename]
+                        broken_redirect_info.append(info)
+                    redirects.append(filepath)
+        if len(broken_redirect_info) > 0:
+            missing_files += '\n' + ' broken redirects '.upper().center(50, '-') + '\n'
+        for broken_redirect in broken_redirect_info:
+            redirect_info = f'{broken_redirect[0]} ({broken_redirect[1]})'
+            missing_files += f'  {versions.color(redirect_info, "yellow")}\n'
+        missing_files += '\n\n'
     version_dir = os.path.join(hub_dir, latest_version)
     if versions.get_version_from_root(version_dir) != 'docs':
         pages = []
@@ -177,9 +186,40 @@ def verify_redirects(hub_dir):
             for filename in files:
                 page_filename = os.path.join(root, filename)
                 pages.append(page_filename)
-        missing_files += '\n' + ' missing redirects '.upper().center(50, '-') + '\n'
         missing_redirects = set(pages) - set(redirects)
+        if len(missing_redirects) > 0:
+            missing_files += '\n' + ' missing redirects '.upper().center(50, '-') + '\n'
         for missing_redirect in missing_redirects:
-            missing_files += f'  {versions.color(missing_redirect)}\n'
+            missing_files += f'  {versions.color(missing_redirect, "yellow")}\n'
+        missing_files += '\n\n'
+        not_in_toc = set(pages) - set([p['page'] for p in all_pages[hub]])
+        if len(not_in_toc) > 0:
+            missing_files += '\n' + ' pages not in ToC '.upper().center(50, '-') + '\n'
+        for page in not_in_toc:
+            missing_files += f'  {versions.color(page, "yellow")}\n'
         missing_files += '\n\n'
     return missing_files if '.md' in missing_files else ''
+
+
+def verify_hover_images(hub_dir):
+    'Verify hover image integrity.'
+    broken = '\n' + ' broken hover image paths '.upper().center(50, '-') + '\n'
+    hov_img_data_dir = f'{hub_dir}/_data/section_images'
+    if not os.path.exists(hov_img_data_dir):
+        return ''
+    data_filenames = os.listdir(hov_img_data_dir)
+    for data_filename in sorted(data_filenames):
+        data_filepath = os.path.join(hov_img_data_dir, data_filename)
+        with open(data_filepath, 'r') as data_file:
+            hov_img_data = yaml.safe_load(data_file)
+        version_number = hov_img_data['version_number']
+        hub = versions.get_hub_from_dir(hub_dir)
+        version = versions.get_version_string(hub, version_number)
+        for page in hov_img_data['data']:
+            for item in page['data']:
+                img_path = os.sep.join([hub_dir, version, item['image']])
+                if not os.path.exists(img_path):
+                    broken += f'  page: {page["page"]}\n'
+                    broken += f'  section: {item["section"]}\n'
+                    broken += f'  path: {versions.color(img_path)}\n\n'
+    return broken if 'page: ' in broken else ''
