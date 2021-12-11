@@ -1,0 +1,6 @@
+version_number: 1
+bom:
+  - category: folder
+    parts:
+      - image: found.txt
+      - image: not_found.txt

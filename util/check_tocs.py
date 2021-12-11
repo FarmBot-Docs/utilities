@@ -144,6 +144,10 @@ class TocChecker():
                 self.summary.add_extra_summary(hub, broken_hover_images)
                 if 'page: ' in broken_hover_images:
                     self.summary.exit_code = 1
+                broken_part_images = verify_part_images(hub_dir)
+                self.summary.add_extra_summary(hub, broken_part_images)
+                if 'path: ' in broken_part_images:
+                    self.summary.exit_code = 1
                 print()
         print()
 
@@ -223,3 +227,28 @@ def verify_hover_images(hub_dir):
                     broken += f'  section: {item["section"]}\n'
                     broken += f'  path: {versions.color(img_path)}\n\n'
     return broken if 'page: ' in broken else ''
+
+
+def verify_part_images(hub_dir):
+    'Verify part image integrity.'
+    broken = '\n' + ' broken part image paths '.upper().center(50, '-') + '\n'
+    part_img_data_dir = f'{hub_dir}/_data/part_hover_images'
+    if not os.path.exists(part_img_data_dir):
+        return ''
+    data_filenames = os.listdir(part_img_data_dir)
+    for data_filename in sorted(data_filenames):
+        data_filepath = os.path.join(part_img_data_dir, data_filename)
+        with open(data_filepath, 'r') as data_file:
+            part_img_data = yaml.safe_load(data_file)
+        version_number = part_img_data['version_number']
+        hub = versions.get_hub_from_dir(hub_dir)
+        version = versions.get_version_string(hub, version_number)
+        for page in part_img_data['bom']:
+            for item in page['parts']:
+                img_path = os.sep.join([hub_dir, version,
+                                        'bom', page['category'],
+                                        '_images', item['image']])
+                if not os.path.exists(img_path):
+                    broken += f'  page: {page["category"]}\n'
+                    broken += f'  path: {versions.color(img_path)}\n\n'
+    return broken if 'path: ' in broken else ''
