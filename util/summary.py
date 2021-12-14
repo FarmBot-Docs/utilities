@@ -205,6 +205,7 @@ class Summary():
     def __init__(self):
         self.results = {}
         self.extra_summaries = {}
+        self.arbitrary_data = {}
         self.exit_code = 0
 
     def add_results(self, key, data):
@@ -215,6 +216,11 @@ class Summary():
     def add_extra_summary(self, hub, string):
         'add extra summary string'
         self.extra_summaries[hub] = self.extra_summaries.get(hub, '') + string
+
+    def add_arbitrary_data(self, hub, key, data):
+        'add arbitrary summary data'
+        self.arbitrary_data[hub] = self.arbitrary_data.get(hub, {})
+        self.arbitrary_data[hub][key] = data
 
     def print(self, hubs=None, **kwargs):
         'print summary'

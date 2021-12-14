@@ -140,11 +140,11 @@ class TocChecker():
                 if '.md' in broken_redirects:
                     pass
                     # self.summary.exit_code = 1
-                broken_hover_images = verify_hover_images(hub_dir)
+                broken_hover_images, _ = verify_hover_images(hub_dir)
                 self.summary.add_extra_summary(hub, broken_hover_images)
                 if 'page: ' in broken_hover_images:
                     self.summary.exit_code = 1
-                broken_part_images = verify_part_images(hub_dir)
+                broken_part_images, _ = verify_part_images(hub_dir)
                 self.summary.add_extra_summary(hub, broken_part_images)
                 if 'path: ' in broken_part_images:
                     self.summary.exit_code = 1
@@ -208,9 +208,10 @@ def verify_redirects(hub_dir, all_pages):
 def verify_hover_images(hub_dir):
     'Verify hover image integrity.'
     broken = '\n' + ' broken hover image paths '.upper().center(50, '-') + '\n'
+    paths = []
     hov_img_data_dir = f'{hub_dir}/_data/section_images'
     if not os.path.exists(hov_img_data_dir):
-        return ''
+        return '', paths
     data_filenames = os.listdir(hov_img_data_dir)
     for data_filename in sorted(data_filenames):
         data_filepath = os.path.join(hov_img_data_dir, data_filename)
@@ -221,20 +222,23 @@ def verify_hover_images(hub_dir):
         version = versions.get_version_string(hub, version_number)
         for page in hov_img_data['data']:
             for item in page['data']:
-                img_path = os.sep.join([hub_dir, version, item['image']])
+                relative_path = os.sep.join([version, item['image']])
+                paths.append(relative_path)
+                img_path = os.sep.join([hub_dir, relative_path])
                 if not os.path.exists(img_path):
                     broken += f'  page: {page["page"]}\n'
                     broken += f'  section: {item["section"]}\n'
                     broken += f'  path: {versions.color(img_path)}\n\n'
-    return broken if 'page: ' in broken else ''
+    return broken if 'page: ' in broken else '', paths
 
 
 def verify_part_images(hub_dir):
     'Verify part image integrity.'
     broken = '\n' + ' broken part image paths '.upper().center(50, '-') + '\n'
+    paths = []
     part_img_data_dir = f'{hub_dir}/_data/part_hover_images'
     if not os.path.exists(part_img_data_dir):
-        return ''
+        return '', paths
     data_filenames = os.listdir(part_img_data_dir)
     for data_filename in sorted(data_filenames):
         data_filepath = os.path.join(part_img_data_dir, data_filename)
@@ -245,10 +249,12 @@ def verify_part_images(hub_dir):
         version = versions.get_version_string(hub, version_number)
         for page in part_img_data['bom']:
             for item in page['parts']:
-                img_path = os.sep.join([hub_dir, version,
-                                        'bom', page['category'],
-                                        '_images', item['image']])
+                relative_path = os.sep.join([version,
+                                             'bom', page['category'],
+                                             '_images', item['image']])
+                paths.append(relative_path)
+                img_path = os.sep.join([hub_dir, relative_path])
                 if not os.path.exists(img_path):
                     broken += f'  page: {page["category"]}\n'
                     broken += f'  path: {versions.color(img_path)}\n\n'
-    return broken if 'path: ' in broken else ''
+    return broken if 'path: ' in broken else '', paths

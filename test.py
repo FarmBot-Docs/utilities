@@ -135,10 +135,10 @@ def test_toc_checker():
     assert_eq('broken redirect count', broken_redirect_count, 1)
 
     missing_redirect_count = missing_redirect_summary.count('.md')
-    assert_eq('missing redirect count', missing_redirect_count, 1)
+    assert_eq('missing redirect count', missing_redirect_count, 3)
 
     not_in_toc_count = not_in_toc_summary.count('.md')
-    assert_eq('not in ToC count', not_in_toc_count, 1)
+    assert_eq('not in ToC count', not_in_toc_count, 3)
 
     broken_path_count = broken_hover_img_path_summary.count('  path: ')
     assert_eq('broken hover image count', broken_path_count, 1)
@@ -154,8 +154,17 @@ def test_image_file_checker():
     image_file_checker.check_all(['test'])
     summary.print(['test'])
 
-    summary_str = image_file_checker.summary_string
-    assert 'v1/docs/missing.jpg' in summary_str
+    assert_eq('unused images',
+              summary.arbitrary_data['test'].get('unused_images'), {
+                  'v1/bom/folder/_images/one.txt',
+              })
+    assert_eq('unused images',
+              summary.arbitrary_data['test'].get('missing_images'), {
+                  'unknown',
+                  'v1/docs/broken image (odd).JPG',
+                  'v1/docs/doc:page',
+                  'v1/docs/missing.jpg',
+              })
 
 
 if __name__ == '__main__':

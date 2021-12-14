@@ -6,6 +6,7 @@ import os
 import json
 from collections import Counter
 import imagesize
+from util.check_tocs import verify_hover_images, verify_part_images
 from util.walk import is_content_dir, get_relative_filename
 from util.versions import HUBS, color
 
@@ -64,6 +65,10 @@ class ImageFileChecker():
                                 if link['to_absolute'] is not None
                                 and not link['to_absolute'].endswith('.md')]
 
+            _, hover_img_paths = verify_hover_images(hub_dir)
+            _, part_img_paths = verify_part_images(hub_dir)
+            all_hover_image_paths = hover_img_paths + part_img_paths
+
             all_files = []
             version_count = 0
             for folder in os.listdir(hub_dir):
@@ -74,8 +79,37 @@ class ImageFileChecker():
                             filepath = os.path.join(root, filename)
                             all_files.append(filepath)
 
-            image_file_paths = [os.sep.join(path.split('/')[2:])
-                                for path in all_files if not path.endswith('.md')]
+            image_file_paths = []
+            md_file_paths = []
+            gallery_imgs = []
+            for path in all_files:
+                filepath = os.sep.join(path.split('/')[2:])
+                if path.endswith('.md'):
+                    md_file_paths.append(filepath)
+                else:
+                    image_file_paths.append(filepath)
+
+            for md_filepath in md_file_paths:
+                with open(os.path.join(hub_dir, md_filepath), 'r') as md_file:
+                    md_file_lines = md_file.readlines()
+                front = 0
+                slug = ''
+                for line in md_file_lines:
+                    if line == '---\n':
+                        front += 1
+                    if line.startswith('slug:') and front == 1:
+                        slug += line.split('"')[1]
+                    if line.startswith('specs:') and front == 1:
+                        relative_img_dir = os.path.join(
+                            os.path.dirname(md_filepath), '_images')
+                        img_dir = os.path.join(hub_dir, relative_img_dir)
+                        relative_img_names = os.listdir(img_dir)
+                        used = [os.path.join(relative_img_dir, img)
+                                for img in relative_img_names
+                                if slug in img.replace('_', '-')]
+                        gallery_imgs += used
+                    if front > 1:
+                        break
 
             image_file_sizes = []
             for path in image_file_paths:
@@ -89,7 +123,7 @@ class ImageFileChecker():
                     [width * height / 1000000, width, height, path])
 
             self.print_title('Statistics')
-            md_file_count = len([p for p in all_files if p.endswith('.md')])
+            md_file_count = len(md_file_paths)
             self.add_line(f'{version_count:10}    versions')
             self.add_line(f'{md_file_count:10}    markdown files')
             total_count = len(image_file_sizes)
@@ -122,7 +156,8 @@ class ImageFileChecker():
             for item in sorted(image_pixel_sizes)[::-1][:top_count]:
                 self.add_line('{:6.2f} MP {:5} x {:5} {}'.format(*item))
 
-            unused = set(image_file_paths) - set(used_image_paths)
+            unused = (set(image_file_paths) - set(used_image_paths)
+                      - set(all_hover_image_paths) - set(gallery_imgs))
             missing = set(used_image_paths) - set(image_file_paths)
 
             if len(unused) > 0 or len(missing) > 0:
@@ -133,10 +168,12 @@ class ImageFileChecker():
                 self.print_title('Unused images')
                 for path in unused:
                     self.add_line(color(path, 'yellow'))
+                self.summary.add_arbitrary_data(hub, 'unused_images', unused)
 
                 self.print_title('Missing images')
                 for path in missing:
                     self.add_line(color(path, 'yellow'))
+                self.summary.add_arbitrary_data(hub, 'missing_images', missing)
 
             self.summary.add_extra_summary(hub, self.summary_string)
             if len(unused) > 0 or len(missing) > 0:
