@@ -98,7 +98,8 @@ class ImageFileChecker():
                     if line == '---\n':
                         front += 1
                     if line.startswith('slug:') and front == 1:
-                        slug += line.split('"')[1]
+                        raw_slug = line.split('slug:')[1]
+                        slug += raw_slug.strip().strip(' ').strip('"')
                     if line.startswith('specs:') and front == 1:
                         relative_img_dir = os.path.join(
                             os.path.dirname(md_filepath), '_images')
