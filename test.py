@@ -138,7 +138,7 @@ def test_toc_checker():
     assert_eq('missing redirect count', missing_redirect_count, 3)
 
     not_in_toc_count = not_in_toc_summary.count('.md')
-    assert_eq('not in ToC count', not_in_toc_count, 3)
+    assert_eq('not in ToC count', not_in_toc_count, 1)
 
     broken_path_count = broken_hover_img_path_summary.count('  path: ')
     assert_eq('broken hover image count', broken_path_count, 1)

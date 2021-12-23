@@ -197,6 +197,8 @@ def verify_redirects(hub_dir, all_pages):
             missing_files += f'  {versions.color(missing_redirect, "yellow")}\n'
         missing_files += '\n\n'
         not_in_toc = set(pages) - set([p['page'] for p in all_pages[hub]])
+        not_in_toc = [p for p in not_in_toc
+                      if 'bom' not in p.split('/') and 'bom.md' not in p.split('/')]
         if len(not_in_toc) > 0:
             missing_files += '\n' + ' pages not in ToC '.upper().center(50, '-') + '\n'
         for page in not_in_toc:

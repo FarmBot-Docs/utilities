@@ -45,8 +45,6 @@ def latest_stable_versions(hub):
     'Get latest stable versions.'
     versions = get_content_versions(hub)
     max_version = [max(versions)] if len(versions) > 0 else []
-    if max_version == [1.6]:
-        return [1.5]
     return max_version
 
 
