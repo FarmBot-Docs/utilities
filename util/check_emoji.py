@@ -143,13 +143,22 @@ class EmojiChecker():
     def check_emojis(self):
         'verify integrity of emojis in a directory'
         def _parse_lines(root, filename, lines):
+            metrics = self.summary.arbitrary_data[self.current_hub]
+            code_block = False
             for line_number, line in enumerate(lines):
+                metrics['lines_checked'] += 1
+                if line.startswith('```'):
+                    code_block = not code_block
+                if code_block:
+                    metrics['lines_skipped'] += 1
+                    continue
                 line_check_kwargs = {
                     'check_emoji': self.check_emoji,
                     'filename': filename,
                     'root': root,
                     'line': line,
                     'line_number': line_number,
+                    'code_block': code_block,
                 }
                 check_line(**line_check_kwargs)
         path = self.current_hub_path
@@ -162,6 +171,8 @@ class EmojiChecker():
         for hub in hubs:
             self.current_hub = hub
             self.emojis[hub] = []
+            self.summary.add_arbitrary_data(hub, 'lines_checked', 0)
+            self.summary.add_arbitrary_data(hub, 'lines_skipped', 0)
             hub_title = f'farmbot-{hub}'
             self.current_hub_path = f'{self.folder}/{hub_title}'
             if os.path.exists(self.current_hub_path):
@@ -170,5 +181,12 @@ class EmojiChecker():
                 else:
                     print(f'checking emoji in {hub_title}...', end='')
                 self.check_emojis()
+                metrics = self.summary.arbitrary_data[hub]
+                skipped = metrics['lines_skipped']
+                total = skipped + metrics['lines_checked']
+                metrics_string = '\n\n' + ' code blocks '.upper().center(50, '-')
+                metrics_string += f'\n    {skipped}/{total} lines'
+                metrics_string += f' ({round(100 * skipped / total, 2)}%)\n\n'
+                self.summary.add_extra_summary(hub, metrics_string)
         self.summary.add_results('emoji', self.emojis)
         print()
