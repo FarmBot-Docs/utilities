@@ -66,7 +66,7 @@ def get_sections(section_index, root, filename, link):
 def get_section_link(header_text):
     'get a section link string from section header text'
     section = header_text.strip().lower().replace(' ', '-')
-    removed_punctuation = string.punctuation.replace('-', '')
+    removed_punctuation = string.punctuation.replace('-', '').replace('_', '')
     for character in removed_punctuation:
         section = section.replace(character, '')
     return section

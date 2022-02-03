@@ -7,7 +7,10 @@ title: "v1 Docs"
 A link to [this page](v1_docs.md).
 A link to [this page and section](../docs/v1_docs.md#v1-docs).
 A link to [this section](#v1-docs).
+A link to [the next section](#section_name).
 And a link to [this page and bad section](../docs/v1_docs.md#v2-docs).
+
+# section_name
 
 ![fake image](v1_docs.md)
 

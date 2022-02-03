@@ -43,13 +43,14 @@ def test_link_checker():
 
     check_results('to', link_checker.links, {
         'hub_count': 1,
-        'item_count': 22,
-        'ok_count': 15,
+        'item_count': 23,
+        'ok_count': 16,
         'broken_count': 7,
         'items': [
             'v1_docs.md',
             '../docs/v1_docs.md#v1-docs',
             '#v1-docs',
+            '#section_name',
             '../docs/v1_docs.md#v2-docs',
             'v1_docs.md',
             '../../v2/docs/v2_docs.md',
@@ -105,7 +106,7 @@ def test_emoji_checker():
     })
 
     assert_eq('lines_checked',
-              summary.arbitrary_data['test'].get('lines_checked'), 51)
+              summary.arbitrary_data['test'].get('lines_checked'), 54)
     assert_eq('lines_skipped',
               summary.arbitrary_data['test'].get('lines_skipped'), 2)
 
