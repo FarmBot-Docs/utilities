@@ -154,6 +154,18 @@ class TocChecker():
 
 def verify_redirects(hub_dir, all_pages):
     'Verify redirect integrity.'
+    def _redirect_path(latest_version, redirect, redirect_dir):
+        redirect_filename = os.path.join(redirect_dir, redirect)
+        with open(redirect_filename, 'r') as redirect_file:
+            lines = redirect_file.readlines()
+        for line in lines:
+            if line.startswith('page_path:'):
+                page_path = line.split('page_path:')[1].strip()
+                filepath = os.sep.join([
+                    hub_dir, latest_version, page_path]) + '.md'
+                filepath = filepath.replace('//', '/')
+                return filepath
+
     hub = versions.get_hub_from_dir(hub_dir)
     latest_version_number = (versions.latest_stable_versions(hub) or [1])[-1]
     latest_version = versions.get_version_string(hub, latest_version_number)
@@ -163,19 +175,12 @@ def verify_redirects(hub_dir, all_pages):
         redirects = []
         broken_redirect_info = []
         for redirect in os.listdir(redirect_dir):
-            redirect_filename = os.path.join(redirect_dir, redirect)
-            with open(redirect_filename, 'r') as redirect_file:
-                lines = redirect_file.readlines()
-            for line in lines:
-                if line.startswith('page_path:'):
-                    page_path = line.split('page_path:')[1].strip()
-                    filepath = os.sep.join([
-                        hub_dir, latest_version, page_path]) + '.md'
-                    filepath = filepath.replace('//', '/')
-                    if not os.path.exists(filepath):
-                        info = [filepath, redirect_filename]
-                        broken_redirect_info.append(info)
-                    redirects.append(filepath)
+            filepath = _redirect_path(latest_version, redirect, redirect_dir)
+            if filepath is not None:
+                if not os.path.exists(filepath):
+                    info = [filepath, os.path.join(redirect_dir, redirect)]
+                    broken_redirect_info.append(info)
+                redirects.append(filepath)
         if len(broken_redirect_info) > 0:
             missing_files += '\n' + ' broken redirects '.upper().center(50, '-') + '\n'
         for broken_redirect in broken_redirect_info:
@@ -193,8 +198,22 @@ def verify_redirects(hub_dir, all_pages):
         missing_redirects = set(pages) - set(redirects)
         if len(missing_redirects) > 0:
             missing_files += '\n' + ' missing redirects '.upper().center(50, '-') + '\n'
+        taken_redirects = []
         for missing_redirect in missing_redirects:
-            missing_files += f'  {versions.color(missing_redirect, "yellow")}\n'
+            page = missing_redirect.split('/')[-1]
+            if page in os.listdir(redirect_dir):
+                path = _redirect_path(latest_version, page, redirect_dir)
+                taken_redirects.append([missing_redirect, path])
+            else:
+                missing_files += f'  {versions.color(missing_redirect, "yellow")}\n'
+        missing_files += '\n\n'
+        if len(taken_redirects) > 0:
+            missing_files += '\n' + ' taken redirects '.upper().center(50, '-') + '\n'
+            if 'genesis' in hub_dir or 'express' in hub_dir:
+                missing_files += '\n  priority: assembly > bom > manufacturing\n\n'
+        for taken_redirect in taken_redirects:
+            missing_files += f'  missing:  {versions.color(taken_redirect[0], "yellow")}\n'
+            missing_files += f'  taken by: {taken_redirect[1]}\n\n'
         missing_files += '\n\n'
         not_in_toc = set(pages) - set([p['page'] for p in all_pages[hub]])
         not_in_toc = [p for p in not_in_toc
