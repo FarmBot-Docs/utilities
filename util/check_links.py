@@ -324,7 +324,12 @@ class LinkChecker():
     def check_links(self):
         'verify integrity of links in a directory'
         def _parse_lines(root, filename, lines):
+            code_block = False
             for line_number, line in enumerate(lines):
+                if line.startswith('```'):
+                    code_block = not code_block
+                if code_block:
+                    continue
                 line_check_kwargs = {
                     'check_link': self.check_link,
                     'filename': filename,

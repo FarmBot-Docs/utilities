@@ -41,3 +41,7 @@ syntax error](v1_docs.md)
 ```
 :not-emoji:
 ```
+
+```
+this = is_not[a](link)
+```

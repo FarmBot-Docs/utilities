@@ -106,9 +106,9 @@ def test_emoji_checker():
     })
 
     assert_eq('lines_checked',
-              summary.arbitrary_data['test'].get('lines_checked'), 57)
+              summary.arbitrary_data['test'].get('lines_checked'), 61)
     assert_eq('lines_skipped',
-              summary.arbitrary_data['test'].get('lines_skipped'), 2)
+              summary.arbitrary_data['test'].get('lines_skipped'), 4)
 
 
 def test_toc_checker():
