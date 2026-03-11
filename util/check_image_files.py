@@ -63,7 +63,8 @@ class ImageFileChecker():
             used_image_paths = [link['to_absolute']
                                 for link in all_links[hub]
                                 if link['to_absolute'] is not None
-                                and not link['to_absolute'].endswith('.md')]
+                                and not link['to_absolute'].endswith('.md')
+                                and not link['to_absolute'].endswith('.js')]
 
             _, hover_img_paths = verify_hover_images(hub_dir)
             _, part_img_paths = verify_part_images(hub_dir)
